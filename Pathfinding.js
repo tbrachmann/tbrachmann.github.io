@@ -16,7 +16,6 @@ function PriorityQueue() {
     this.add = function(value, fScore) {
         var node = new PriorityQueueNode(value);
         if(this.head == null) {
-            console.log("added to head");
             this.head = node;
             this.length += 1;
             return node;
@@ -26,12 +25,10 @@ function PriorityQueue() {
             if(fScore.get(value) < fScore.get(nextNode.value)) {
                 //When you add to the very front of the queue.
                 if(nextNode.prev == null) {
-                    console.log("added to front");
                     nextNode.prev = node;
                     node.next = nextNode;
                     this.head = node;
                 } else {
-                    console.log("added before");
                     nextNode.prev.next = node;
                     node.prev = nextNode.prev;
                     node.next = nextNode;
@@ -41,11 +38,8 @@ function PriorityQueue() {
                 return node;
             }
             if(nextNode.next == null) {
-                console.log("added to very end");
                 nextNode.next = node;
-                node['prev'] = nextNode;
-                console.log(nextNode);
-                console.log(node.prev);
+                node.prev = nextNode;
                 this.length += 1;
                 return node;
             }
@@ -132,7 +126,7 @@ function TileValueMap(tileMap) {
         } else if(tileCoordinates.y < 0 || tileCoordinates.y >= this.size_y) {
             return null;
         }
-        return this.backingArray[tileCoordinates.x][tileCoordinates.y];
+        return this.backingArray[tileCoordinates.x] && this.backingArray[tileCoordinates.x][tileCoordinates.y];
     }
 }
 
@@ -170,17 +164,25 @@ function FindShortestPath(start, goal, tileMap) {
     gScore.insert(start, 0);
     var fScore = new TileValueMap(tileMap);
     fScore.insert(start, ManhattanHeuristic(start, goal));
+    //console.log(goal);
+    //console.log(ManhattanHeuristic(start, goal));
     while(openSet.length != 0) {
-        console.log("Open set:");
+        /*console.log("Open set:");
         console.log(openSet);
         console.log("Closed set:")
-        console.log(closedSet);
+        console.log(closedSet);*/
         var current = openSet.remove();
-        console.log("Current node: ");
-        console.log(current);
+        //console.log("Current node with fScore of " + fScore.get(current) + " and gScore of " + gScore.get(current));
+        //console.log(current);
+        var nextNode = openSet.head;
+        while(nextNode != null) {
+            //console.log(fScore.get(nextNode.value));
+            nextNode = nextNode.next;
+        }
         if(current.equals(goal)) {
             return ReconstructPath(cameFrom, current);
         }
+        //tileMap.getTile(current).draw(e_ctx, current);
         closedSet.insert(current, true);
         var currentNeighbors = [
             new TileCoordinates(current.x + neighbors[0].x, current.y + neighbors[0].y),
@@ -190,65 +192,57 @@ function FindShortestPath(start, goal, tileMap) {
         ];
         for(i = 0; i < currentNeighbors.length; i++) {
             //The tile object that has functions.
-            console.log("Neighbor tile: ");
+            //console.log("Neighbor tile: ");
             var neighborTile = tileMap.getTile(currentNeighbors[i]);
-
             //The coordinates
             var neighbor = currentNeighbors[i];
-            console.log(neighbor);
+            //console.log(neighbor);
             if(closedSet.get(neighbor)) {
-                console.log("Neighbor tile skipped");
+                //console.log("Neighbor tile skipped");
                 continue;
             } else if(neighborTile == null) {
-                console.log("Neighbor tile skipped");
+                //console.log("Neighbor tile skipped");
                 continue;
             } else if(!neighborTile.traversable) {
-                console.log("Neighbor tile skipped");
+                //console.log("Neighbor tile skipped");
                 continue;
             }
             var neighborGScore = gScore.get(neighbor);
             if(!neighborGScore) {
                 gScore.insert(neighbor, 10000);
-            } else {
-                gScore.insert(neighbor, neighborGScore);
             }
             var tentativeGScore = gScore.get(current) + 1;
             if(!(openSet.contains(neighbor))) {
-                var neighborFScore = gScore.get(neighbor);
+                var neighborFScore = fScore.get(neighbor);
                 if(!neighborFScore) {
-                    gScore.insert(neighbor, 10000);
-                } else {
-                    gScore.insert(neighbor, neighborFScore);
+                    fScore.insert(neighbor, 10000);
                 }
-                var a = openSet.add(neighbor, fScore);
-                console.log("should have added:")
-                console.log(a);
-                console.log(openSet);
             } else if (tentativeGScore >= gScore.get(neighbor)){
                 continue;
             }
             cameFrom.insert(neighbor, current);
             gScore.insert(neighbor, tentativeGScore);
             fScore.insert(neighbor, gScore.get(neighbor) + ManhattanHeuristic(neighbor, goal));
+            openSet.add(neighbor, fScore);
         }
     }
     return null;
 }
 
 function ReconstructPath(cameFrom, current) {
-    var totalPath = new Array(11);
+    var totalPath = new Array(cameFrom.backingArray.length * 2);
     var i = 0;
-    totalPath[0] = current;
+    totalPath.unshift(current);
     i += 1;
     while(cameFrom.contains(current)) {
         current = cameFrom.get(current);
-        totalPath[i] = current;
+        totalPath.unshift(current);
         i += 1;
     }
     return totalPath;
 }
 
-console.log("starting here!");
+/*console.log("starting here!");
 var canvas = document.getElementById("background");
 var testTileMap = new TileMap(4, canvas);
 for(x = 0; x < testTileMap.size_x; x++) {
@@ -258,7 +252,7 @@ for(x = 0; x < testTileMap.size_x; x++) {
 }
 var shortestPath = FindShortestPath(new TileCoordinates(0, 0), new TileCoordinates(3, 3), testTileMap);
 console.log(shortestPath);
-/*var testFScore = new TileValueMap(testTileMap);
+var testFScore = new TileValueMap(testTileMap);
 testFScore.insert(new TileCoordinates(0, 1), 1);
 testFScore.insert(new TileCoordinates(0, 2), 2);
 testFScore.insert(new TileCoordinates(0, 3), 3);

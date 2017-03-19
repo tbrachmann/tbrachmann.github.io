@@ -40,7 +40,10 @@ function mouseDownHandler(e) {
     var y = e.clientY - (e.target.getBoundingClientRect().top * zoomLevel);
     x = Math.floor(x / mapWidth * tileMap.size_x);
     y = Math.floor(y / mapHeight * tileMap.size_y);
-    player.move(x, y);
+    e_ctx.clearRect(0, 0, entities.width, entities.height);
+    var path = FindShortestPath(new TileCoordinates(player.x, player.y), new TileCoordinates(x, y), tileMap);
+    console.log(path);
+    player.moveAlongPath(path);
     //To get tile, first subtract clientX and Y by 100 in order to set position to top left
 }
 
