@@ -27,9 +27,9 @@
     <canvas id="entities" width="240" height="240"></canvas>
 </div>
 
-<script type="text/javascript" src="Utilities.js"></script>
 <script type="text/javascript" src="BaseClasses.js"></script>
 <script type="text/javascript" src="Entities.js"></script>
+<script type="text/javascript" src="Utilities.js"></script>
 <script type="text/javascript" src="Tiles.js"></script>
 <script type="text/javascript" src="Pathfinding.js"></script>
 <script>
@@ -44,77 +44,93 @@
     //var y = canvas.height-45;
     //var dx = 1;
     //var dy = -1;
-    var ballRadius = 16;
-    var img = document.getElementById("source");
     var zoomLevel = 2.5;
     var currentTileFocus = {
         x: 0,
         y: 0
     }
-    entities.addEventListener("mousedown", mouseDownHandler, false);
-    entities.addEventListener("mousemove", mouseMoveHandler, false);
+    var loaded = false;
     container.style.zoom = zoomLevel;
-    //container.style.MozTransform = 'scale(' + zoomLevel + ')';
+    window.onload = function() {
+        function mouseDownHandler(e) {
+            var mapWidth = e.target.width * zoomLevel;
+            var mapHeight = e.target.height * zoomLevel;
+            var x = e.clientX - (e.target.getBoundingClientRect().left * zoomLevel); //The game board starts 100 pixels from the top left in the window.
+            var y = e.clientY - (e.target.getBoundingClientRect().top * zoomLevel);
+            x = Math.floor(x / mapWidth * tileMap.size_x);
+            y = Math.floor(y / mapHeight * tileMap.size_y);
+            e_ctx.clearRect(0, 0, entities.width, entities.height);
+            var path = FindShortestPath(new TileCoordinates(player.x, player.y), new TileCoordinates(x, y), tileMap);
+            console.log(path);
+            player.moveAlongPath(path);
+            //To get tile, first subtract clientX and Y by 100 in order to set position to top left
+        }
 
-    function doMove() {
-        /*console.log("x: " + player.x + " targetX: " + player.targetX);
-        console.log(player.x);*/
-        if(player.x != player.targetX) {
-            player.x += Math.sign(player.targetX - player.x) * player.speed;
+        function mouseMoveHandler(e) {
+            var mapWidth = e.target.width * zoomLevel;
+            var mapHeight = e.target.height * zoomLevel;
+            var x = e.clientX - (e.target.getBoundingClientRect().left * zoomLevel); //The game board starts 100 pixels from the top left in the window.
+            var y = e.clientY - (e.target.getBoundingClientRect().top * zoomLevel);
+            x = Math.floor(x / mapWidth * tileMap.size_x);
+            y = Math.floor(y / mapHeight * tileMap.size_y);
+            //console.log(x + ", " + y);
+            //console.log(tileMap.getTile(x, y));
+            if((x != currentTileFocus.x || y != currentTileFocus.y) || (x != player.x || y != player.y)) {
+                e_ctx.clearRect(currentTileFocus.x * 8 - 1, currentTileFocus.y * 8 - 1, 9, 9);
+                currentTileFocus.x = x;
+                currentTileFocus.y = y;
+                drawRect(x * 8, y * 8, "blue");
+            }
         }
-        if(player.y != player.targetY) {
-            player.y += Math.sign(player.targetY - player.y) * player.speed;
+
+        entities.addEventListener("mousedown", mouseDownHandler, false);
+        entities.addEventListener("mousemove", mouseMoveHandler, false);
+
+        function update() {
+            if(player.moving) {
+                e_ctx.clearRect(player.x*8 - 1, player.y*8 - 1, 9, 9);
+                player.moveAlongPath();
+            } else {
+                player.draw();
+            }
+            /*if(player.x < entities.width) {
+                player.move(player.x + 2, player.y);
+            } else if (player.x == entities.width) {
+                player.move(0, player.y + 8);
+            }*/
+            //drawRect(player.x, player.y, "green");
         }
-        if(player.x == player.targetX && player.y == player.targetY){
-            player.moving = false;
+
+        var tileMap = new TileMap(8, background);
+        for(x = 0; x < tileMap.size_x; x++) {
+            for(y = 0; y < tileMap.size_y; y++) {
+                var generator = getRandomInt(0, 7);
+                //var tile = terrain[Object.keys(terrain)[generator]];
+                var tile = terrain.grass;
+                if (x == 2 && y == 0) {
+                    tile = terrain.mountain;
+                }
+                if (x == 2 && y == 1) {
+                    tile = terrain.mountain;
+                }
+                if (x == 2 && y == 2) {
+                    tile = terrain.mountain;
+                }
+                if (x == 1 && y == 2) {
+                    tile = terrain.mountain;
+                }
+                tileMap.add(x, y, tile);
+                tile.draw(b_ctx, new TileCoordinates(x, y));
+                //console.log(terrain[generator]);
+                //b_ctx.drawImage(terrain[Object.keys(terrain)[generator]], x*8, y*8, 8, 8);
+            }
         }
+
+        var player = new Agent(0, 0);
+        drawBorders();
+        setInterval(update, 20);
+        //console.log(player.x);
     }
-
-    //how to redraw borders as you move across them?
-    function update() {
-        if(player.moving) {
-            e_ctx.clearRect(player.x*8 - 1, player.y*8 - 1, 9, 9);
-            player.moveAlongPath();
-        } else {
-            player.draw();
-        }
-        /*if(player.x < entities.width) {
-            player.move(player.x + 2, player.y);
-        } else if (player.x == entities.width) {
-            player.move(0, player.y + 8);
-        }*/
-        //drawRect(player.x, player.y, "green");
-    }
-
-    var tileMap = new TileMap(8, background);
-    for(x = 0; x < tileMap.size_x; x++) {
-        for(y = 0; y < tileMap.size_y; y++) {
-            var generator = getRandomInt(0, 7);
-            //var tile = terrain[Object.keys(terrain)[generator]];
-            var tile = terrain.grass;
-            if (x == 2 && y == 0) {
-                tile = terrain.mountain;
-            }
-            if (x == 2 && y == 1) {
-                tile = terrain.mountain;
-            }
-            if (x == 2 && y == 2) {
-                tile = terrain.mountain;
-            }
-            if (x == 1 && y == 2) {
-                tile = terrain.mountain;
-            }
-            tileMap.add(x, y, tile);
-            tile.draw(b_ctx, new TileCoordinates(x, y));
-            //console.log(terrain[generator]);
-            //b_ctx.drawImage(terrain[Object.keys(terrain)[generator]], x*8, y*8, 8, 8);
-        }
-    }
-    var player = new Agent(0, 0);
-    drawBorders();
-    setInterval(update, 20);
-    //console.log(player.x);
-
 </script>
 
 </body>

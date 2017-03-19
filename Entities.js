@@ -5,6 +5,12 @@ Player Turn: deals with player input, switches between player characters, moves 
 Enemy Turn: calculates best move for the AIs and moves them*/
 
 
+function imageLoader(src) {
+    var img = new Image();
+    img.src = String(src);
+    return img;
+}
+
 /* Flyweight Pattern: TileMap stores a pointer to an object,
 and that object can draw itself but it doesn't have a set position. */
 var terrainSprites = {
