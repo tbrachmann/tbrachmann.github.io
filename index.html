@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title> Gamedev Canvas Workshop </title>
+    <style>
+        * { padding: 0; margin: 0; }
+        canvas {
+            background: transparent;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #container {
+            position: relative;
+            height: 240px;
+            width: 240px;
+            -moz-transform: scale(2.5);
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+<div id="container">
+    <canvas id="background" width="240" height="240"></canvas>
+    <canvas id="entities" width="240" height="240"></canvas>
+</div>
+
+<script type="text/javascript" src="Utilities.js"></script>
+<script type="text/javascript" src="BaseClasses.js"></script>
+<script type="text/javascript" src="Entities.js"></script>
+<script type="text/javascript" src="Tiles.js"></script>
+<script type="text/javascript" src="Pathfinding.js"></script>
+<script>
+    var background = document.getElementById("background");
+    var b_ctx = background.getContext("2d");
+    var entities = document.getElementById("entities");
+    var e_ctx = entities.getContext("2d")
+    var container = document.getElementById("container");
+
+
+    //var x = canvas.width/2;
+    //var y = canvas.height-45;
+    //var dx = 1;
+    //var dy = -1;
+    var ballRadius = 16;
+    var img = document.getElementById("source");
+    var zoomLevel = 2.5;
+    var currentTileFocus = {
+        x: 0,
+        y: 0
+    }
+    entities.addEventListener("mousedown", mouseDownHandler, false);
+    entities.addEventListener("mousemove", mouseMoveHandler, false);
+    container.style.zoom = zoomLevel;
+    //container.style.MozTransform = 'scale(' + zoomLevel + ')';
+
+    function doMove() {
+        /*console.log("x: " + player.x + " targetX: " + player.targetX);
+        console.log(player.x);*/
+        if(player.x != player.targetX) {
+            player.x += Math.sign(player.targetX - player.x) * player.speed;
+        }
+        if(player.y != player.targetY) {
+            player.y += Math.sign(player.targetY - player.y) * player.speed;
+        }
+        if(player.x == player.targetX && player.y == player.targetY){
+            player.moving = false;
+        }
+    }
+
+    //how to redraw borders as you move across them?
+    function update() {
+        if(player.moving) {
+            e_ctx.clearRect(player.x - 1, player.y - 1, 9, 9);
+            doMove();
+        }
+        /*if(player.x < entities.width) {
+            player.move(player.x + 2, player.y);
+        } else if (player.x == entities.width) {
+            player.move(0, player.y + 8);
+        }*/
+        //drawRect(player.x, player.y, "green");
+    }
+
+    var tileMap = new TileMap(8, background);
+
+    for(x = 0; x < tileMap.size_x; x++) {
+        for(y = 0; y < tileMap.size_y; y++) {
+            var generator = getRandomInt(0, 7);
+            var tile = terrain[Object.keys(terrain)[generator]];
+            tileMap.add(x, y, tile);
+            tile.draw(b_ctx, new TileCoordinates(x, y));
+            //console.log(terrain[generator]);
+            //b_ctx.drawImage(terrain[Object.keys(terrain)[generator]], x*8, y*8, 8, 8);
+        }
+    }
+
+    var player = new Agent(0, 0);
+    drawBorders();
+    setInterval(update, 20);
+    //console.log(player.x);
+
+</script>
+
+</body>
+</html>
