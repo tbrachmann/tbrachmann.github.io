@@ -82,6 +82,16 @@ function TileMap(tileSize, background) {
         this.backingArray[x][y] = type;
     }
     this.getTile = function(x, y) {
+        if(arguments.length == 1) {
+            var tileCoordinates = x;
+            x = tileCoordinates.x;
+            y = tileCoordinates.y;
+        }
+        if(x < 0 || x >= this.size_x) {
+            return null;
+        } else if(y < 0 || y >= this.size_y) {
+            return null;
+        }
         return this.backingArray[x][y];
     }
 }
