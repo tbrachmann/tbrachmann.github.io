@@ -31,10 +31,10 @@ function Tile(img, pxSize) {
     this.img = img;
     this.movementCost = 1;
     this.traversable = true;
-    this.pxSize = pxSize;
+    this.pxSize = pxSize || 8;
     this.standingEffect = function () {},
     this.draw = function(canvas, coords) {
-        canvas.drawImage(this.img, coords.x*pxSize, coords.y*pxSize, pxSize, pxSize);
+        canvas.drawImage(this.img, coords.x*this.pxSize, coords.y*this.pxSize, this.pxSize, this.pxSize);
     }
 }
 
@@ -93,27 +93,29 @@ function TileMap(sizeX, sizeY, value, indexOffsetX, indexOffsetY) {
             y = 0;
             while(y < sizeY) {
                 arr[x][y] = value;
+                y++;
             }
             x++;
         }
         return arr;
     })(this.sizeX, this.sizeY, value);
     this.add = function(x, y, value) {
-        x = x - indexOffsetX;
-        y = y - indexOffsetY;
+        x = x - this.indexOffsetX;
+        y = y - this.indexOffsetY;
         if(value == undefined) {
-            value = this.value;
+            value = null;
         }
         if(x < 0 || x >= this.sizeX) {
             return null;
         } else if(y < 0 || y >= this.sizeY) {
             return null;
         }
+
         this.backingArray[x][y] = value;
     }
     this.get = function(x, y) {
-        x = x - indexOffsetX;
-        y = y - indexOffsetY;
+        x = x - this.indexOffsetX;
+        y = y - this.indexOffsetY;
         if(x < 0 || x >= this.size_x) {
             return null;
         } else if(y < 0 || y >= this.size_y) {
@@ -122,8 +124,8 @@ function TileMap(sizeX, sizeY, value, indexOffsetX, indexOffsetY) {
         return this.backingArray[x][y];
     }
     this.contains = function(x, y) {
-        x = x - indexOffsetX;
-        y = y - indexOffsetY;
+        x = x - this.indexOffsetX;
+        y = y - this.indexOffsetY;
         //Check out of bounds.
         if(x < 0 || x >= this.sizeX) {
             return false;
@@ -131,7 +133,7 @@ function TileMap(sizeX, sizeY, value, indexOffsetX, indexOffsetY) {
             return false;
         //Check un-initialized.
         } else {
-            return this.backingArray[x][y];
+            return this.backingArray[x][y] != false;
         }
     }
 }

@@ -71,8 +71,8 @@
             var mapHeight = e.target.height * zoomLevel;
             var x = e.clientX - (e.target.getBoundingClientRect().left * zoomLevel); //The game board starts 100 pixels from the top left in the window.
             var y = e.clientY - (e.target.getBoundingClientRect().top * zoomLevel);
-            x = Math.floor(x / mapWidth * tileMap.size_x);
-            y = Math.floor(y / mapHeight * tileMap.size_y);
+            x = Math.floor(x / mapWidth * tileMap.sizeX);
+            y = Math.floor(y / mapHeight * tileMap.sizeY);
             //console.log(x + ", " + y);
             //console.log(tileMap.getTile(x, y));
             if((x != currentTileFocus.x || y != currentTileFocus.y) || (x != player.x || y != player.y)) {
@@ -101,10 +101,13 @@
             //drawRect(player.x, player.y, "green");
         }
 
-        var tileMap = new TileMap(8, background);
-        for(x = 0; x < tileMap.size_x; x++) {
-            for(y = 0; y < tileMap.size_y; y++) {
-                var generator = getRandomInt(0, 7);
+        var tileMap = new TileMap(30, 30, null);
+        console.log(tileMap);
+        var x;
+        var y;
+        for(x = 0; x < tileMap.sizeX; x++) {
+            for(y = 0; y < tileMap.sizeY; y++) {
+                //var generator = getRandomInt(0, 7);
                 //var tile = terrain[Object.keys(terrain)[generator]];
                 var tile = terrain.grass;
                 if (x == 2 && y == 0) {
@@ -119,6 +122,7 @@
                 if (x == 1 && y == 2) {
                     tile = terrain.mountain;
                 }
+                console.log(tileMap);
                 tileMap.add(x, y, tile);
                 tile.draw(b_ctx, new TileCoordinates(x, y));
                 //console.log(terrain[generator]);
@@ -126,8 +130,18 @@
             }
         }
 
-        var player = new Agent(0, 0);
+        var player = new Agent(12, 12);
         drawBorders();
+        var map = GetPossibleMoves(player.x, player.y, 3, tileMap);
+        for(x = 0; x < map.sizeX; x++) {
+            for(y = 0; y < map.sizeY; y++) {
+                var tile = map.get(x, y);
+                if(tile != null) {
+                    //tile.draw(e_ctx, new TileCoordinates(x, y));
+                    drawRect(x * 8, y* 8, "red");
+                }
+            }
+        }
         setInterval(update, 20);
         //console.log(player.x);
     }

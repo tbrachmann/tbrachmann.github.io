@@ -144,7 +144,9 @@ SetWrapper.has = function(tileCoordinates) {
 //get max and min, and then return a square made out of those?
 function PossibleMovesHelper(x, y, visited, tileMap, moveLimit) {
     /*traversable will be checked one level up...*/
+    console.log(x + ", " + y);
     if(!tileMap.contains(x, y) || !tileMap.get(x, y).traversable) {
+        console.log("ending here?");
         return null;
     }
     if(moveLimit == 0) {
@@ -152,40 +154,50 @@ function PossibleMovesHelper(x, y, visited, tileMap, moveLimit) {
     }
     visited.push({x: x, y: y});
     visited.push.apply([
-        PossibleMovesHelper(x + 1, y, visited, tileMap, moveLimit-1), 
-        PossibleMovesHelper(x - 1, y, visited, tileMap, moveLimit-1), 
-        PossibleMovesHelper(x, y + 1, visited, tileMap, moveLimit-1), 
+        PossibleMovesHelper(x + 1, y, visited, tileMap, moveLimit-1),
+        PossibleMovesHelper(x - 1, y, visited, tileMap, moveLimit-1),
+        PossibleMovesHelper(x, y + 1, visited, tileMap, moveLimit-1),
         PossibleMovesHelper(x, y - 1, visited, tileMap, moveLimit-1)
     ]);
 }
 
 /* Takes in the main tileMap and returns a smaller tileMap
   of possible moves for the actor to make. */
-function GetPossibleMoves(x, y, visited, moveLimit, tileMap) {
-    var x = actor.x;
-    var y = actoy.y;
+function GetPossibleMoves(x, y, moveLimit, tileMap) {
     var visited = [{x: x, y: y}];
     visited.push.apply([
-        PossibleMovesHelper(x + 1, y, visited, tileMap, moveLimit), 
-        PossibleMovesHelper(x - 1, y, visited, tileMap, moveLimit), 
-        PossibleMovesHelper(x, y + 1, visited, tileMap, moveLimit), 
+        PossibleMovesHelper(x + 1, y, visited, tileMap, moveLimit),
+        PossibleMovesHelper(x - 1, y, visited, tileMap, moveLimit),
+        PossibleMovesHelper(x, y + 1, visited, tileMap, moveLimit),
         PossibleMovesHelper(x, y - 1, visited, tileMap, moveLimit)
     ]);
-    visited.filter(null);
-    //make the tilemap here. 
+    visited.filter((function(value) {
+        return value != null;
+    }));
+    console.log(visited);
+    //make the tilemap here.
     //initialize the tileMap with everything to null
     //then go through the list and add stuff
-    var finalTileMap = new TileMap(2*moveLimit+1, 2*moveLimit+1, null, x-moveLimit, y-moveLimit);
-    var i;
-    while(i = 0; i < visited.length; i++) {
-        
+    var finalTileMap = new TileMap(2*moveLimit+1, 2*moveLimit+1, null, x-moveL, 0);
+    var i = 0;
+    while(i < visited.length) {
+        console.log(visited[i].x + ", " + visited[i].y);
+        console.log(tileMap.get(visited[i].x, visited[i].y) != null);
+        finalTileMap.add(visited[i].x, visited[i].y, tileMap.get(visited[i].x, visited[i].y));
+        i++;
     }
+    return finalTileMap;
 }
 
-function ManhattanHeuristic(start, goal) {
-    var dx = Math.abs(start.x - goal.x);
-    var dy = Math.abs(start.y - goal.y);
-    return 1 * (dx + dy);
+function ManhattanHeuristic(start, current, goal) {
+    var dx = Math.abs(current.x - goal.x);
+    var dy = Math.abs(current.y - goal.y);
+    var dx1 = current.x - goal.x;
+    var dy1 = current.y - goal.y;
+    var dx2 = start.x - goal.x;
+    var dy2 = start.y - goal.y;
+    var cross = Math.abs(dx1*dy2 - dx2*dy1);
+    return 1 * (dx + dy) + cross;
 }
 
 function FindShortestPath(start, goal, tileMap) {
@@ -204,7 +216,7 @@ function FindShortestPath(start, goal, tileMap) {
     var gScore = new TileValueMap(tileMap);
     gScore.insert(start, 0);
     var fScore = new TileValueMap(tileMap);
-    fScore.insert(start, ManhattanHeuristic(start, goal));
+    fScore.insert(start, ManhattanHeuristic(start, start, goal));
     //console.log(goal);
     //console.log(ManhattanHeuristic(start, goal));
     while(openSet.length != 0) {
@@ -234,7 +246,7 @@ function FindShortestPath(start, goal, tileMap) {
         for(i = 0; i < currentNeighbors.length; i++) {
             //The tile object that has functions.
             //console.log("Neighbor tile: ");
-            var neighborTile = tileMap.getTile(currentNeighbors[i]);
+            var neighborTile = tileMap.get(currentNeighbors[i]);
             //The coordinates
             var neighbor = currentNeighbors[i];
             //console.log(neighbor);
@@ -263,7 +275,7 @@ function FindShortestPath(start, goal, tileMap) {
             }
             cameFrom.insert(neighbor, current);
             gScore.insert(neighbor, tentativeGScore);
-            fScore.insert(neighbor, gScore.get(neighbor) + ManhattanHeuristic(neighbor, goal));
+            fScore.insert(neighbor, gScore.get(neighbor) + ManhattanHeuristic(start, neighbor, goal));
             openSet.add(neighbor, fScore);
         }
     }
