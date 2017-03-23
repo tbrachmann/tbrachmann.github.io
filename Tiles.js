@@ -25,14 +25,16 @@ var terrainSprites = {
 }
 
 /* A tile is an entity that can be traversed, or not. It also has special
-moves when people are standing on top of it. */
-function Tile(img) {
+moves when people are standing on top of it. It must be a square with length
+and witdh of pxSize. */
+function Tile(img, pxSize) {
     this.img = img;
     this.movementCost = 1;
     this.traversable = true;
+    this.pxSize = pxSize;
     this.standingEffect = function () {},
     this.draw = function(canvas, coords) {
-        canvas.drawImage(this.img, coords.x*8, coords.y*8, 8, 8);
+        canvas.drawImage(this.img, coords.x*pxSize, coords.y*pxSize, pxSize, pxSize);
     }
 }
 
@@ -69,29 +71,67 @@ var terrain = {
     mountain: MountainTile
 }
 
-function TileMap(tileSize, background) {
-    this.size_x = background.width / tileSize;
-    this.size_y = background.height / tileSize;
-    this.tileSize = tileSize;
-    var arr = new Array(this.size_x);
-    for(i = 0; i < arr.length; i++) {
-        arr[i] = new Array(this.size_y);
-    }
-    this.backingArray = arr;
-    this.add = function(x, y, type) {
-        this.backingArray[x][y] = type;
-    }
-    this.getTile = function(x, y) {
-        if(arguments.length == 1) {
-            var tileCoordinates = x;
-            x = tileCoordinates.x;
-            y = tileCoordinates.y;
+/*@arg sizeX and sizeY are the sizes of a sizeX by sizeY tilemap (tileMap
+  must be a rectangle but does not have to be a square)
+  @arg indexOffset is the offset of each index, for when you want
+  to make a smaller tile map that does not start at 0 (such as for
+  finding the optimal path in the player's allowed move space: a smaller
+  part of the larger main tilemap.) It should be the top left and right
+  coordinate of your sliced tilemap in the larger space.
+  @arg value is the value to initialize all tile values to.*/
+function TileMap(sizeX, sizeY, value, indexOffsetX, indexOffsetY) {
+    this.sizeX = sizeX;
+    this.sizeY = sizeY;
+    this.indexOffsetX = indexOffsetX || 0;
+    this.indexOffsetY = indexOffsetY || 0;
+    this.backingArray = (function(sizeX, sizeY, value) {
+        var arr = new Array(sizeX);
+        var x = 0;
+        var y;
+        while(x < sizeX) {
+            arr[x] = new Array(sizeY);
+            y = 0;
+            while(y < sizeY) {
+                arr[x][y] = value;
+            }
+            x++;
         }
+        return arr;
+    })(this.sizeX, this.sizeY, value);
+    this.add = function(x, y, value) {
+        x = x - indexOffsetX;
+        y = y - indexOffsetY;
+        if(value == undefined) {
+            value = this.value;
+        }
+        if(x < 0 || x >= this.sizeX) {
+            return null;
+        } else if(y < 0 || y >= this.sizeY) {
+            return null;
+        }
+        this.backingArray[x][y] = value;
+    }
+    this.get = function(x, y) {
+        x = x - indexOffsetX;
+        y = y - indexOffsetY;
         if(x < 0 || x >= this.size_x) {
             return null;
         } else if(y < 0 || y >= this.size_y) {
             return null;
         }
         return this.backingArray[x][y];
+    }
+    this.contains = function(x, y) {
+        x = x - indexOffsetX;
+        y = y - indexOffsetY;
+        //Check out of bounds.
+        if(x < 0 || x >= this.sizeX) {
+            return false;
+        } else if(y < 0 || y >= this.sizeY) {
+            return false;
+        //Check un-initialized.
+        } else {
+            return this.backingArray[x][y];
+        }
     }
 }

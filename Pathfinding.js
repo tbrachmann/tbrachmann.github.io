@@ -141,6 +141,47 @@ SetWrapper.has = function(tileCoordinates) {
     this.prototype.has(element);
 }*/
 
+//get max and min, and then return a square made out of those?
+function PossibleMovesHelper(x, y, visited, tileMap, moveLimit) {
+    /*traversable will be checked one level up...*/
+    if(!tileMap.contains(x, y) || !tileMap.get(x, y).traversable) {
+        return null;
+    }
+    if(moveLimit == 0) {
+        return {x: x, y: y};
+    }
+    visited.push({x: x, y: y});
+    visited.push.apply([
+        PossibleMovesHelper(x + 1, y, visited, tileMap, moveLimit-1), 
+        PossibleMovesHelper(x - 1, y, visited, tileMap, moveLimit-1), 
+        PossibleMovesHelper(x, y + 1, visited, tileMap, moveLimit-1), 
+        PossibleMovesHelper(x, y - 1, visited, tileMap, moveLimit-1)
+    ]);
+}
+
+/* Takes in the main tileMap and returns a smaller tileMap
+  of possible moves for the actor to make. */
+function GetPossibleMoves(x, y, visited, moveLimit, tileMap) {
+    var x = actor.x;
+    var y = actoy.y;
+    var visited = [{x: x, y: y}];
+    visited.push.apply([
+        PossibleMovesHelper(x + 1, y, visited, tileMap, moveLimit), 
+        PossibleMovesHelper(x - 1, y, visited, tileMap, moveLimit), 
+        PossibleMovesHelper(x, y + 1, visited, tileMap, moveLimit), 
+        PossibleMovesHelper(x, y - 1, visited, tileMap, moveLimit)
+    ]);
+    visited.filter(null);
+    //make the tilemap here. 
+    //initialize the tileMap with everything to null
+    //then go through the list and add stuff
+    var finalTileMap = new TileMap(2*moveLimit+1, 2*moveLimit+1, null, x-moveLimit, y-moveLimit);
+    var i;
+    while(i = 0; i < visited.length; i++) {
+        
+    }
+}
+
 function ManhattanHeuristic(start, goal) {
     var dx = Math.abs(start.x - goal.x);
     var dy = Math.abs(start.y - goal.y);
