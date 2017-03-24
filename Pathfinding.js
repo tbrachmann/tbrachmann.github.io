@@ -22,7 +22,7 @@ function PriorityQueue() {
         }
         var nextNode = this.head;
         while(nextNode != null) {
-            if(fScore.get(value) < fScore.get(nextNode.value)) {
+            if(fScore.get(value.x, value.y) < fScore.get(nextNode.value.x, nextNode.value.y)) {
                 //When you add to the very front of the queue.
                 if(nextNode.prev == null) {
                     nextNode.prev = node;
@@ -58,7 +58,7 @@ function PriorityQueue() {
         }
         var nextNode = this.head;
         while(nextNode.next != null) {
-            if(nextNode.value.equals(value)) {
+            if(nextNode.value.x == value.x && nextNode.value.y == value.y) {
                 //Removing from the front
                 if(nextNode.prev == null) {
                     this.head = nextNode.next;
@@ -80,7 +80,7 @@ function PriorityQueue() {
         /* Whats the best way to implement this one?*/
         var nextNode = this.head;
         while(nextNode != null) {
-            if(nextNode.value.equals(value)) {
+            if(nextNode.value.x == value.x && nextNode.value.y == value.y) {
                 return true;
             }
             nextNode = nextNode.next;
@@ -144,26 +144,32 @@ SetWrapper.has = function(tileCoordinates) {
 //get max and min, and then return a square made out of those?
 function PossibleMovesHelper(x, y, visited, tileMap, moveLimit) {
     /*traversable will be checked one level up...*/
-    console.log(x + ", " + y);
+    //console.log(x + ", " + y);
+    //console.log("in tilemap: " + (x-visited.indexOffsetX) + ", " +  y);
     if(!tileMap.contains(x, y) || !tileMap.get(x, y).traversable) {
-        console.log("ending here?");
-        return null;
+        return;
     }
     if(moveLimit == 0) {
-        return {x: x, y: y};
+        visited.add(x, y, tileMap.get(x, y));
+        return;
     }
-    visited.push({x: x, y: y});
-    visited.push.apply([
-        PossibleMovesHelper(x + 1, y, visited, tileMap, moveLimit-1),
-        PossibleMovesHelper(x - 1, y, visited, tileMap, moveLimit-1),
-        PossibleMovesHelper(x, y + 1, visited, tileMap, moveLimit-1),
-        PossibleMovesHelper(x, y - 1, visited, tileMap, moveLimit-1)
-    ]);
+    if(!visited.contains(x, y)) {
+        visited.add(x, y, tileMap.get(x, y));
+    }
+    /*if(visited.contains(x+1, y) && visited.contains(x-1, y) &&
+        visited.contains(x, y+1) && visited.contains(x, y-1)) {
+        return;
+    }*/
+    PossibleMovesHelper(x + 1, y, visited, tileMap, moveLimit-1);
+    PossibleMovesHelper(x - 1, y, visited, tileMap, moveLimit-1);
+    PossibleMovesHelper(x, y + 1, visited, tileMap, moveLimit-1);
+    PossibleMovesHelper(x, y - 1, visited, tileMap, moveLimit-1);
+    //console.log(visited);
 }
 
 /* Takes in the main tileMap and returns a smaller tileMap
   of possible moves for the actor to make. */
-function GetPossibleMoves(x, y, moveLimit, tileMap) {
+function GetPossibleMoves(x, y, visited, moveLimit, tileMap) {
     var visited = [{x: x, y: y}];
     visited.push.apply([
         PossibleMovesHelper(x + 1, y, visited, tileMap, moveLimit),
@@ -178,7 +184,7 @@ function GetPossibleMoves(x, y, moveLimit, tileMap) {
     //make the tilemap here.
     //initialize the tileMap with everything to null
     //then go through the list and add stuff
-    var finalTileMap = new TileMap(2*moveLimit+1, 2*moveLimit+1, null, x-moveL, 0);
+    var finalTileMap = new TileMap(2*moveLimit+1, 2*moveLimit+1, null, 0, 0);
     var i = 0;
     while(i < visited.length) {
         console.log(visited[i].x + ", " + visited[i].y);
@@ -203,20 +209,24 @@ function ManhattanHeuristic(start, current, goal) {
 function FindShortestPath(start, goal, tileMap) {
     /* Optimizations that can be made here:
     only investigate the zone that can be moved in. */
-    var closedSet = new TileValueMap(tileMap);
+    var closedSet = new TileMap(tileMap.sizeX, tileMap.sizeY, null,
+        tileMap.indexOffsetX, tileMap.indexOffsetY);
     var openSet = new PriorityQueue();
-    openSet.add(start);
+    openSet.add({x: start.x, y: start.y});
     var neighbors = [
-        new TileCoordinates(1, 0),
-        new TileCoordinates(-1, 0),
-        new TileCoordinates(0, 1),
-        new TileCoordinates(0, -1)
+        {x: 1, y: 0},
+        {x: -1, y: 0},
+        {x: 0, y: 1},
+        {x: 0, y: -1}
     ];
-    var cameFrom = new TileValueMap(tileMap);
-    var gScore = new TileValueMap(tileMap);
-    gScore.insert(start, 0);
-    var fScore = new TileValueMap(tileMap);
-    fScore.insert(start, ManhattanHeuristic(start, start, goal));
+    var cameFrom = new TileMap(tileMap.sizeX, tileMap.sizeY, null,
+        tileMap.indexOffsetX, tileMap.indexOffsetY);
+    var gScore = new TileMap(tileMap.sizeX, tileMap.sizeY, null,
+        tileMap.indexOffsetX, tileMap.indexOffsetY);
+    gScore.add(start.x, start.y, 0);
+    var fScore = new TileMap(tileMap.sizeX, tileMap.sizeY, null,
+        tileMap.indexOffsetX, tileMap.indexOffsetY);
+    fScore.add(start.x, start.y, ManhattanHeuristic(start, start, goal));
     //console.log(goal);
     //console.log(ManhattanHeuristic(start, goal));
     while(openSet.length != 0) {
@@ -227,30 +237,30 @@ function FindShortestPath(start, goal, tileMap) {
         var current = openSet.remove();
         //console.log("Current node with fScore of " + fScore.get(current) + " and gScore of " + gScore.get(current));
         //console.log(current);
-        var nextNode = openSet.head;
+        /*var nextNode = openSet.head;
         while(nextNode != null) {
             //console.log(fScore.get(nextNode.value));
             nextNode = nextNode.next;
-        }
-        if(current.equals(goal)) {
+        }*/
+        if(current.x == goal.x && current.y == goal.y) {
             return ReconstructPath(cameFrom, current);
         }
         //tileMap.getTile(current).draw(e_ctx, current);
-        closedSet.insert(current, true);
+        closedSet.add(current.x, current.y, true);
         var currentNeighbors = [
-            new TileCoordinates(current.x + neighbors[0].x, current.y + neighbors[0].y),
-            new TileCoordinates(current.x + neighbors[1].x, current.y + neighbors[1].y),
-            new TileCoordinates(current.x + neighbors[2].x, current.y + neighbors[2].y),
-            new TileCoordinates(current.x + neighbors[3].x, current.y + neighbors[3].y)
+            {x: current.x + neighbors[0].x, y: current.y + neighbors[0].y},
+            {x: current.x + neighbors[1].x, y: current.y + neighbors[1].y},
+            {x: current.x + neighbors[2].x, y: current.y + neighbors[2].y},
+            {x: current.x + neighbors[3].x, y: current.y + neighbors[3].y}
         ];
         for(i = 0; i < currentNeighbors.length; i++) {
             //The tile object that has functions.
             //console.log("Neighbor tile: ");
-            var neighborTile = tileMap.get(currentNeighbors[i]);
+            var neighborTile = tileMap.get(currentNeighbors[i].x, currentNeighbors[i].y);
             //The coordinates
             var neighbor = currentNeighbors[i];
             //console.log(neighbor);
-            if(closedSet.get(neighbor)) {
+            if(closedSet.contains(neighbor.x, neighbor.y)) {
                 //console.log("Neighbor tile skipped");
                 continue;
             } else if(neighborTile == null) {
@@ -260,22 +270,23 @@ function FindShortestPath(start, goal, tileMap) {
                 //console.log("Neighbor tile skipped");
                 continue;
             }
-            var neighborGScore = gScore.get(neighbor);
+            var neighborGScore = gScore.get(neighbor.x, neighbor.y);
             if(!neighborGScore) {
-                gScore.insert(neighbor, 10000);
+                gScore.add(neighbor.x, neighbor.y, 10000);
             }
-            var tentativeGScore = gScore.get(current) + 1;
+            var tentativeGScore = gScore.get(current.x, current.y) + 1;
             if(!(openSet.contains(neighbor))) {
-                var neighborFScore = fScore.get(neighbor);
+                var neighborFScore = fScore.get(neighbor.x, neighbor.y);
                 if(!neighborFScore) {
-                    fScore.insert(neighbor, 10000);
+                    fScore.add(neighbor.x, neighbor.y, 10000);
                 }
-            } else if (tentativeGScore >= gScore.get(neighbor)){
+            } else if (tentativeGScore >= gScore.get(neighbor.x, neighbor.y)){
                 continue;
             }
-            cameFrom.insert(neighbor, current);
-            gScore.insert(neighbor, tentativeGScore);
-            fScore.insert(neighbor, gScore.get(neighbor) + ManhattanHeuristic(start, neighbor, goal));
+            cameFrom.add(neighbor.x, neighbor.y, current);
+            gScore.add(neighbor.x, neighbor.y, tentativeGScore);
+            fScore.add(neighbor.x, neighbor.y,
+                gScore.get(neighbor.x, neighbor.y) + ManhattanHeuristic(start, neighbor, goal));
             openSet.add(neighbor, fScore);
         }
     }

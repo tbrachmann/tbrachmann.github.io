@@ -4,7 +4,7 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
-function drawBorders() {
+function DrawBorders() {
     for(x = 0; x*8 < background.width; x++) {
         for(y = 0; y*8 < background.height; y++)    {
             //println("getting here but not drawing");
@@ -21,6 +21,18 @@ function drawBorders() {
                 b_ctx.lineTo(x_i * 8 - 0.5, background.height - 0.5);
                 b_ctx.stroke();
                 b_ctx.closePath();
+            }
+        }
+    }
+}
+
+function DrawMoves(tileMap) {
+    for(x = tileMap.indexOffsetX; x < tileMap.indexOffsetX + tileMap.sizeX; x++) {
+        for(y = tileMap.indexOffsetY; y < tileMap.indexOffsetY + tileMap.sizeY; y++) {
+            var tile = tileMap.get(x, y);
+            if(tile != null) {
+                //tile.draw(e_ctx, new TileCoordinates(x, y));
+                drawRect(x * 8, y* 8, "red");
             }
         }
     }

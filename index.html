@@ -60,7 +60,10 @@
             x = Math.floor(x / mapWidth * tileMap.size_x);
             y = Math.floor(y / mapHeight * tileMap.size_y);
             e_ctx.clearRect(0, 0, entities.width, entities.height);
-            var path = FindShortestPath(new TileCoordinates(player.x, player.y), new TileCoordinates(x, y), tileMap);
+            var moveLimit = 5;
+            var movementTileMap = new TileMap(2*moveLimit+1, 2*moveLimit+1, null, player.x-moveLimit, player.y-moveLimit);
+            PossibleMovesHelper(player.x, player.y, movementTileMap, tileMap, moveLimit);
+            var path = FindShortestPath({x: player.x, y: player.y}, {x: x, y: y}, movementTileMap);
             console.log(path);
             player.moveAlongPath(path);
             //To get tile, first subtract clientX and Y by 100 in order to set position to top left
@@ -102,7 +105,6 @@
         }
 
         var tileMap = new TileMap(30, 30, null);
-        console.log(tileMap);
         var x;
         var y;
         for(x = 0; x < tileMap.sizeX; x++) {
@@ -122,7 +124,6 @@
                 if (x == 1 && y == 2) {
                     tile = terrain.mountain;
                 }
-                console.log(tileMap);
                 tileMap.add(x, y, tile);
                 tile.draw(b_ctx, new TileCoordinates(x, y));
                 //console.log(terrain[generator]);
@@ -130,18 +131,24 @@
             }
         }
 
-        var player = new Agent(12, 12);
-        drawBorders();
-        var map = GetPossibleMoves(player.x, player.y, 3, tileMap);
-        for(x = 0; x < map.sizeX; x++) {
-            for(y = 0; y < map.sizeY; y++) {
+        var player = new Agent(0, 0);
+        DrawBorders();
+        //var moveLimit = 5;
+        //var map = new TileMap(2*moveLimit+1, 2*moveLimit+1, null, player.x-moveLimit, player.y-moveLimit);
+        //PossibleMovesHelper(player.x, player.y, map, tileMap, moveLimit);
+        //its only exploring one way!
+        //console.log(map);
+        /*for(x = map.indexOffsetX; x < map.indexOffsetX + map.sizeX; x++) {
+            for(y = map.indexOffsetY; y < map.indexOffsetY + map.sizeY; y++) {
+                console.log("drawing: " + x + ", " + y)
+                console.log("tileMap: " + (x-map.indexOffsetX) + ", " + y);
                 var tile = map.get(x, y);
                 if(tile != null) {
                     //tile.draw(e_ctx, new TileCoordinates(x, y));
                     drawRect(x * 8, y* 8, "red");
                 }
             }
-        }
+        }*/
         setInterval(update, 20);
         //console.log(player.x);
     }

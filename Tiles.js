@@ -82,6 +82,7 @@ var terrain = {
 function TileMap(sizeX, sizeY, value, indexOffsetX, indexOffsetY) {
     this.sizeX = sizeX;
     this.sizeY = sizeY;
+    this.value = value || null;
     this.indexOffsetX = indexOffsetX || 0;
     this.indexOffsetY = indexOffsetY || 0;
     this.backingArray = (function(sizeX, sizeY, value) {
@@ -98,7 +99,7 @@ function TileMap(sizeX, sizeY, value, indexOffsetX, indexOffsetY) {
             x++;
         }
         return arr;
-    })(this.sizeX, this.sizeY, value);
+    })(this.sizeX, this.sizeY, this.value);
     this.add = function(x, y, value) {
         x = x - this.indexOffsetX;
         y = y - this.indexOffsetY;
@@ -121,6 +122,7 @@ function TileMap(sizeX, sizeY, value, indexOffsetX, indexOffsetY) {
         } else if(y < 0 || y >= this.size_y) {
             return null;
         }
+        console.log(x + ", " + y);
         return this.backingArray[x][y];
     }
     this.contains = function(x, y) {
@@ -133,7 +135,7 @@ function TileMap(sizeX, sizeY, value, indexOffsetX, indexOffsetY) {
             return false;
         //Check un-initialized.
         } else {
-            return this.backingArray[x][y] != false;
+            return this.backingArray[x][y] != null;
         }
     }
 }
