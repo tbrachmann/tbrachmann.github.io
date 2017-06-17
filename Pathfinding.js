@@ -130,16 +130,7 @@ function TileValueMap(tileMap) {
     }
 }
 
-/*function SetWrapper() {}
-SetWrapper.prototype = new Set();
-SetWrapper.add = function(tileCoordinates) {
-    var element = [tileCoordinates.x, tileCoordinates.y];
-    this.prototype.add(element);
-}
-SetWrapper.has = function(tileCoordinates) {
-    var element = [tileCoordinates.x, tileCoordinates.y];
-    this.prototype.has(element);
-}*/
+
 
 //get max and min, and then return a square made out of those?
 function PossibleMovesHelper(x, y, visited, tileMap, moveLimit) {
@@ -207,6 +198,8 @@ function ManhattanHeuristic(start, current, goal) {
 }
 
 function FindShortestPath(start, goal, tileMap) {
+    console.log("start: " + start.x + ", " + start.y);
+    console.log("goal: " + goal.x + ", " + goal.y);
     /* Optimizations that can be made here:
     only investigate the zone that can be moved in. */
     var closedSet = new TileMap(tileMap.sizeX, tileMap.sizeY, null,
@@ -290,6 +283,7 @@ function FindShortestPath(start, goal, tileMap) {
             openSet.add(neighbor, fScore);
         }
     }
+    console.log("returning null");
     return null;
 }
 
@@ -298,8 +292,8 @@ function ReconstructPath(cameFrom, current) {
     var i = 0;
     totalPath.unshift(current);
     i += 1;
-    while(cameFrom.contains(current)) {
-        current = cameFrom.get(current);
+    while(cameFrom.contains(current.x, current.y)) {
+        current = cameFrom.get(current.x, current.y);
         totalPath.unshift(current);
         i += 1;
     }

@@ -33,61 +33,17 @@
 <script type="text/javascript" src="Tiles.js"></script>
 <script type="text/javascript" src="Pathfinding.js"></script>
 <script>
-    var background = document.getElementById("background");
-    var b_ctx = background.getContext("2d");
-    var entities = document.getElementById("entities");
-    var e_ctx = entities.getContext("2d")
-    var container = document.getElementById("container");
+    
 
 
     //var x = canvas.width/2;
     //var y = canvas.height-45;
     //var dx = 1;
     //var dy = -1;
-    var zoomLevel = 2.5;
-    var currentTileFocus = {
-        x: 0,
-        y: 0
-    }
-    var loaded = false;
+    
+        var loaded = false;
     container.style.zoom = zoomLevel;
     window.onload = function() {
-        function mouseDownHandler(e) {
-            var mapWidth = e.target.width * zoomLevel;
-            var mapHeight = e.target.height * zoomLevel;
-            var x = e.clientX - (e.target.getBoundingClientRect().left * zoomLevel); //The game board starts 100 pixels from the top left in the window.
-            var y = e.clientY - (e.target.getBoundingClientRect().top * zoomLevel);
-            x = Math.floor(x / mapWidth * tileMap.size_x);
-            y = Math.floor(y / mapHeight * tileMap.size_y);
-            e_ctx.clearRect(0, 0, entities.width, entities.height);
-            var moveLimit = 5;
-            var movementTileMap = new TileMap(2*moveLimit+1, 2*moveLimit+1, null, player.x-moveLimit, player.y-moveLimit);
-            PossibleMovesHelper(player.x, player.y, movementTileMap, tileMap, moveLimit);
-            var path = FindShortestPath({x: player.x, y: player.y}, {x: x, y: y}, movementTileMap);
-            console.log(path);
-            player.moveAlongPath(path);
-            //To get tile, first subtract clientX and Y by 100 in order to set position to top left
-        }
-
-        function mouseMoveHandler(e) {
-            var mapWidth = e.target.width * zoomLevel;
-            var mapHeight = e.target.height * zoomLevel;
-            var x = e.clientX - (e.target.getBoundingClientRect().left * zoomLevel); //The game board starts 100 pixels from the top left in the window.
-            var y = e.clientY - (e.target.getBoundingClientRect().top * zoomLevel);
-            x = Math.floor(x / mapWidth * tileMap.sizeX);
-            y = Math.floor(y / mapHeight * tileMap.sizeY);
-            //console.log(x + ", " + y);
-            //console.log(tileMap.getTile(x, y));
-            if((x != currentTileFocus.x || y != currentTileFocus.y) || (x != player.x || y != player.y)) {
-                e_ctx.clearRect(currentTileFocus.x * 8 - 1, currentTileFocus.y * 8 - 1, 9, 9);
-                currentTileFocus.x = x;
-                currentTileFocus.y = y;
-                drawRect(x * 8, y * 8, "blue");
-            }
-        }
-
-        entities.addEventListener("mousedown", mouseDownHandler, false);
-        entities.addEventListener("mousemove", mouseMoveHandler, false);
 
         function update() {
             if(player.moving) {
@@ -104,35 +60,7 @@
             //drawRect(player.x, player.y, "green");
         }
 
-        var tileMap = new TileMap(30, 30, null);
-        var x;
-        var y;
-        for(x = 0; x < tileMap.sizeX; x++) {
-            for(y = 0; y < tileMap.sizeY; y++) {
-                //var generator = getRandomInt(0, 7);
-                //var tile = terrain[Object.keys(terrain)[generator]];
-                var tile = terrain.grass;
-                if (x == 2 && y == 0) {
-                    tile = terrain.mountain;
-                }
-                if (x == 2 && y == 1) {
-                    tile = terrain.mountain;
-                }
-                if (x == 2 && y == 2) {
-                    tile = terrain.mountain;
-                }
-                if (x == 1 && y == 2) {
-                    tile = terrain.mountain;
-                }
-                tileMap.add(x, y, tile);
-                tile.draw(b_ctx, new TileCoordinates(x, y));
-                //console.log(terrain[generator]);
-                //b_ctx.drawImage(terrain[Object.keys(terrain)[generator]], x*8, y*8, 8, 8);
-            }
-        }
-
-        var player = new Agent(0, 0);
-        DrawBorders();
+        
         //var moveLimit = 5;
         //var map = new TileMap(2*moveLimit+1, 2*moveLimit+1, null, player.x-moveLimit, player.y-moveLimit);
         //PossibleMovesHelper(player.x, player.y, map, tileMap, moveLimit);
@@ -149,7 +77,6 @@
                 }
             }
         }*/
-        setInterval(update, 20);
         //console.log(player.x);
     }
 </script>

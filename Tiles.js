@@ -49,7 +49,7 @@ FireTile.standingEffect = function(player) {
     /* Hurt the player. */
 }
 var SandTile = new Tile(terrainSprites.sand);
-this.movementCost = 3;
+SandTile.movementCost = 3;
 
 /* These two have actions: they can roll across tiles
 or fall on tiles. Where to implement this? */
@@ -101,41 +101,40 @@ function TileMap(sizeX, sizeY, value, indexOffsetX, indexOffsetY) {
         return arr;
     })(this.sizeX, this.sizeY, this.value);
     this.add = function(x, y, value) {
+        if(x < this.indexOffsetX || x >= this.indexOffsetX + this.sizeX) {
+            return null;
+        } else if(y < this.indexOffsetY || y >= this.indexOffsetY + this.sizeY) {
+            return null;
+        }
         x = x - this.indexOffsetX;
         y = y - this.indexOffsetY;
         if(value == undefined) {
             value = null;
         }
-        if(x < 0 || x >= this.sizeX) {
-            return null;
-        } else if(y < 0 || y >= this.sizeY) {
-            return null;
-        }
 
         this.backingArray[x][y] = value;
     }
     this.get = function(x, y) {
-        x = x - this.indexOffsetX;
-        y = y - this.indexOffsetY;
-        if(x < 0 || x >= this.size_x) {
+        if(x < this.indexOffsetX || x >= this.indexOffsetX + this.sizeX) {
             return null;
-        } else if(y < 0 || y >= this.size_y) {
+        } else if(y < this.indexOffsetY || y >= this.indexOffsetY + this.sizeY) {
             return null;
         }
-        console.log(x + ", " + y);
+        x = x - this.indexOffsetX;
+        y = y - this.indexOffsetY;
+        //console.log(x + ", " + y);
         return this.backingArray[x][y];
     }
     this.contains = function(x, y) {
+        if(x < this.indexOffsetX || x >= this.indexOffsetX + this.sizeX) {
+            return false;
+        } else if(y < this.indexOffsetY || y >= this.indexOffsetY + this.sizeY) {
+            return false;
+        }
         x = x - this.indexOffsetX;
         y = y - this.indexOffsetY;
         //Check out of bounds.
-        if(x < 0 || x >= this.sizeX) {
-            return false;
-        } else if(y < 0 || y >= this.sizeY) {
-            return false;
         //Check un-initialized.
-        } else {
-            return this.backingArray[x][y] != null;
-        }
+        return this.backingArray[x][y] != null;
     }
 }
